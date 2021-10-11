@@ -192,11 +192,11 @@ void preprocess_A(unsigned int* A_ptr, unsigned int* A_row, int* A_block_IDs, in
     int nz_blocks_per_row = 0;
     int current_row = 0;
 
-    for(int p=0; p<(n/b); p++){ // iterate rows of blocks
-        for(int q=0; q<(n/b); q++){ //iterate blocks of each row
+    for(int p=0; p<(n/b); p++){ 
+        for(int q=0; q<(n/b); q++){
             bool block_is_nz = false;
-            for(int j=q*b; j<(q*b)+b; j++){ //iterate each column inside block
-                for(int k=(A_ptr[j]-1); k<(A_ptr[j+1]-1); k++){ //iterate col_non_zeros
+            for(int j=q*b; j<(q*b)+b; j++){ 
+                for(int k=(A_ptr[j]-1); k<(A_ptr[j+1]-1); k++){ 
                     current_row = A_row[k];
                     if(current_row >= p*b && current_row < (p+1)*b){
                         A_locations[3*nz_count] = current_row;
@@ -241,11 +241,11 @@ void preprocess_B(unsigned int* B_ptr, unsigned int* B_row, int* B_block_IDs, in
     int nz_blocks_per_col = 0;
     int current_row = 0;
 
-    for(int q=0; q<(n/b); q++){ // iterate columns of blocks
-        for(int p=0; p<(n/b); p++){ //iterate blocks of each column
+    for(int q=0; q<(n/b); q++){ 
+        for(int p=0; p<(n/b); p++){ 
             bool block_is_nz = false;
-            for(int j=q*b; j<(q*b)+b; j++){ //iterate each column inside block
-                for(int k=(B_ptr[j]-1); k<(B_ptr[j+1]-1); k++){ //iterate col_non_zeros
+            for(int j=q*b; j<(q*b)+b; j++){ 
+                for(int k=(B_ptr[j]-1); k<(B_ptr[j+1]-1); k++){ 
                     current_row = B_row[k];
                     if(current_row >= p*b && current_row < (p+1)*b){
                         B_locations[3*nz_count] = current_row;
@@ -323,12 +323,12 @@ void BMMfiltered(int* A_block_IDs, int* A_locations, int* A_nz_ptr, int* B_block
         int blocks_row = block / blocks_per_row;
         int blocks_col = block % blocks_per_row;
 
-        // for each NZ block of A in "blocks_row" row
+        
         for(int p = A_nz_blocks_ptr[blocks_row]; p<A_nz_blocks_ptr[blocks_row+1]; p++){
 
             int current_A_block = A_block_IDs[p];
 
-            // for each NZ block of b in "blocks_col" column
+            
             for(int q = B_nz_blocks_ptr[blocks_col]; q<B_nz_blocks_ptr[blocks_col+1]; q++){
 
                 int current_B_block = B_block_IDs[q];
@@ -339,12 +339,12 @@ void BMMfiltered(int* A_block_IDs, int* A_locations, int* A_nz_ptr, int* B_block
                     continue;
                 }
                     
-                // for each NZ bit in NZ block of A
+                
                 for(int nz_A = A_nz_ptr[p]; nz_A<A_nz_ptr[p+1]; nz_A++){
                     
                     int offset_A = A_locations[3*nz_A + 2];
 
-                    // for each NZ bit in NZ block of B
+                    
                     for(int nz_B = B_nz_ptr[q]; nz_B<B_nz_ptr[q+1]; nz_B++){
                         
                         int offset_B = B_locations[3*nz_B + 2];
@@ -394,12 +394,12 @@ void BMM(int* A_block_IDs, int* A_locations, int* A_nz_ptr, int* B_block_IDs, in
         int blocks_row = block / blocks_per_row;
         int blocks_col = block % blocks_per_row;
 
-        // for each NZ block of A in "blocks_row" row
+        
         for(int p = A_nz_blocks_ptr[blocks_row]; p<A_nz_blocks_ptr[blocks_row+1]; p++){
 
             int current_A_block = A_block_IDs[p];
 
-            // for each NZ block of B in "blocks_col" column
+            
             for(int q = B_nz_blocks_ptr[blocks_col]; q<B_nz_blocks_ptr[blocks_col+1]; q++){
 
                 int current_B_block = B_block_IDs[q];
@@ -410,20 +410,20 @@ void BMM(int* A_block_IDs, int* A_locations, int* A_nz_ptr, int* B_block_IDs, in
                     continue;
                 }
                     
-                // for each NZ bit in NZ block of A
+             
                 for(int nz_A = A_nz_ptr[p]; nz_A<A_nz_ptr[p+1]; nz_A++){
                     
                     int offset_A = A_locations[3*nz_A + 2];
 
-                    // for each NZ bit in NZ block of B
+                    
                     for(int nz_B = B_nz_ptr[q]; nz_B<B_nz_ptr[q+1]; nz_B++){
                         
                         int offset_B = B_locations[3*nz_B + 2];
                         
                         if(offset_A == offset_B){
                     
-                            C_i[nz_counter] = A_locations[3*nz_A]; // == i_A
-                            C_j[nz_counter] = B_locations[3*nz_B + 1]; // == j_B
+                            C_i[nz_counter] = A_locations[3*nz_A]; 
+                            C_j[nz_counter] = B_locations[3*nz_B + 1]; 
                             nz_counter+=1;
                             
                         }

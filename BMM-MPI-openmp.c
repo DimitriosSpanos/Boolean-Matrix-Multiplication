@@ -286,11 +286,11 @@ void preprocess_A(unsigned int* A_ptr, unsigned int* A_row, int* A_block_IDs, in
     int nz_blocks_per_row = 0;
     int current_row = 0;
 
-    for(int p=0; p<(n/b); p++){ // iterate rows of blocks
-        for(int q=0; q<(n/b); q++){ //iterate blocks of each row
+    for(int p=0; p<(n/b); p++){ 
+        for(int q=0; q<(n/b); q++){ 
             bool block_is_nz = false;
-            for(int j=q*b; j<(q*b)+b; j++){ //iterate each column inside block
-                for(int k=(A_ptr[j]-1); k<(A_ptr[j+1]-1); k++){ //iterate col_non_zeros
+            for(int j=q*b; j<(q*b)+b; j++){ 
+                for(int k=(A_ptr[j]-1); k<(A_ptr[j+1]-1); k++){ 
                     int current_row = A_row[k];
                     if(current_row >= p*b && current_row < (p+1)*b){
                         A_locations[3*nz_count] = current_row;
@@ -338,11 +338,11 @@ void preprocess_B(unsigned int* B_ptr, unsigned int* B_row, int* B_block_IDs, in
     int nz_blocks_per_col = 0;
     int current_row = 0;
 
-    for(int q=0; q<(n/b); q++){ // iterate columns of blocks
-        for(int p=0; p<(n/b); p++){ //iterate blocks of each column
+    for(int q=0; q<(n/b); q++){ 
+        for(int p=0; p<(n/b); p++){ 
             bool block_is_nz = false;
-            for(int j=q*b; j<(q*b)+b; j++){ //iterate each column inside block
-                for(int k=(B_ptr[j]-1); k<(B_ptr[j+1]-1); k++){ //iterate col_non_zeros
+            for(int j=q*b; j<(q*b)+b; j++){
+                for(int k=(B_ptr[j]-1); k<(B_ptr[j+1]-1); k++){ 
                     current_row = B_row[k];
                     if(current_row >= p*b && current_row < (p+1)*b){
                         B_locations[3*nz_count] = current_row;
@@ -433,12 +433,12 @@ void BMMfiltered(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_loc
         unsigned int* C_j_block = (unsigned int *)malloc(b*b*sizeof(unsigned int));
         if(C_j_block==NULL) exit(-1);
 
-        // for each NZ block of A in "blocks_row" row
+        
         for(int p = A_nz_blocks_ptr[blocks_row]; p<A_nz_blocks_ptr[blocks_row+1]; p++){
 
             int current_A_block = A_block_IDs[p];
 
-            // for each NZ block of b in "blocks_col" column
+            
             for(int q = B_nz_blocks_ptr[blocks_col]; q<B_nz_blocks_ptr[blocks_col+1]; q++){
 
                 int current_B_block = B_block_IDs[q];
@@ -449,23 +449,23 @@ void BMMfiltered(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_loc
                     continue;
                 }
    
-                // for each NZ bit in NZ block of A
+                
                 for(int nz_A = A_nz_ptr[p]; nz_A<A_nz_ptr[p+1]; nz_A++){
                     
                     int offset_A = A_locations[3*nz_A + 2];
 
-                    // for each NZ bit in NZ block of B
+                    
                     for(int nz_B = B_nz_ptr[q]; nz_B<B_nz_ptr[q+1]; nz_B++){
                         int offset_B = B_locations[3*nz_B + 2];
                         
                         if(offset_A == offset_B){
-                            // check if bit exists in F
+                            
                             for(int k = F_ptr[B_locations[3*nz_B + 1]]-1; k<F_ptr[B_locations[3*nz_B + 1]+1]-1; k++){
                                 if(A_locations[3*nz_A] < F_row[k])
                                     break;
                                 else if(A_locations[3*nz_A] == F_row[k]){
-                                    C_i_block[block_nz] = A_locations[3*nz_A]; // == i_A
-                                    C_j_block[block_nz] = B_locations[3*nz_B + 1]; // == j_B
+                                    C_i_block[block_nz] = A_locations[3*nz_A]; 
+                                    C_j_block[block_nz] = B_locations[3*nz_B + 1]; 
                                     block_nz+=1;
                                 }
                             }
@@ -488,13 +488,13 @@ void BMMfiltered(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_loc
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Request request;
     if(world_rank != 0){
-        // tags: 0 -> C_i, 1 -> C_j, 2 -> nz_counter
+        
         MPI_Isend(C_i_process, nz_counter, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD, &request);
         MPI_Isend(C_j_process, nz_counter, MPI_UNSIGNED, 0, 1, MPI_COMM_WORLD, &request);
         MPI_Isend(&nz_counter, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, &request);
     }
     else {
-        // add process' own NZs
+        
         for(int i = *C_nz; i<(*C_nz+nz_counter); i++){
             C_i[i] = C_i_process[i - *C_nz];
             C_j[i] = C_j_process[i - *C_nz];
@@ -503,7 +503,7 @@ void BMMfiltered(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_loc
         int processes_count;
         MPI_Comm_size(MPI_COMM_WORLD, &processes_count);
 
-        // receive other processes' NZs
+        
         unsigned int *buffer_i;
         unsigned int *buffer_j;
         for(int i = 1; i<processes_count; i++){
@@ -559,12 +559,12 @@ void BMM(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_locations, 
         unsigned int* C_j_block = (unsigned int *)malloc(b*b*sizeof(unsigned int));
         if(C_j_block==NULL) exit(-1);
 
-        // for each NZ block of A in "blocks_row" row
+        
         for(int i = A_nz_blocks_ptr[blocks_row]; i<A_nz_blocks_ptr[blocks_row+1]; i++){
 
             int current_A_block = A_block_IDs[i];
 
-            // for each NZ block of B in "blocks_col" column
+            
             for(int j = B_nz_blocks_ptr[blocks_col]; j<B_nz_blocks_ptr[blocks_col+1]; j++){
 
                 int current_B_block = B_block_IDs[j];
@@ -575,19 +575,19 @@ void BMM(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_locations, 
                     continue;
                 }
                     
-                // for each NZ bit in NZ block of A
+                
                 for(int nz_A = A_nz_ptr[i]; nz_A<A_nz_ptr[i+1]; nz_A++){
                     
                     int offset_A = A_locations[3*nz_A + 2];
 
-                    // for each NZ bit in NZ block of B
+                    
                     for(int nz_B = B_nz_ptr[j]; nz_B<B_nz_ptr[j+1]; nz_B++){
                         
                         int offset_B = B_locations[3*nz_B + 2];
                         
                         if(offset_A == offset_B){
-                            C_i_block[block_nz] = A_locations[3*nz_A]; // == i_A
-                            C_j_block[block_nz] = B_locations[3*nz_B + 1]; // == j_B
+                            C_i_block[block_nz] = A_locations[3*nz_A]; 
+                            C_j_block[block_nz] = B_locations[3*nz_B + 1]; 
                             block_nz+=1;
                         }
                     }
@@ -608,13 +608,13 @@ void BMM(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_locations, 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Request request;
     if(world_rank != 0){
-        // tags: 0 -> C_i, 1 -> C_j, 2 -> nz_counter
+        
         MPI_Isend(C_i_process, nz_counter, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD, &request);
         MPI_Isend(C_j_process, nz_counter, MPI_UNSIGNED, 0, 1, MPI_COMM_WORLD, &request);
         MPI_Isend(&nz_counter, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, &request);
     }
     else {
-        // add process' own NZs
+        
         for(int i = *C_nz; i<(*C_nz+nz_counter); i++){
             C_i[i] = C_i_process[i - *C_nz];
             C_j[i] = C_j_process[i - *C_nz];
@@ -623,7 +623,7 @@ void BMM(int world_rank, int* chunk_offset, int* A_block_IDs, int* A_locations, 
         int processes_count;
         MPI_Comm_size(MPI_COMM_WORLD, &processes_count);
 
-        // receive other processes' NZs
+        
         unsigned int *buffer_i;
         unsigned int *buffer_j;
         for(int i = 1; i<processes_count; i++){
